@@ -223,13 +223,13 @@ class BasePatchKD(object):
             else:
                 print(('successfully resume optimizer from {}'.format(model_path)))
 
-    def resume_from_model(self, models_dir):
+    def resume_from_model(self, model_path):
         '''resume from model. model_path shoule be like /path/to/model.pkl'''
         # self.model.load_state_dict(torch.load(model_path), strict=False)
         # print(('successfully resume model from {}'.format(model_path)))
         '''resume model from resume_epoch'''
         for module_name, module in self.model_dict.items():
-            model_path = os.path.join(models_dir, f'model_{module_name}_50.pkl')
+            # model_path = os.path.join(models_dir, f'model_{module_name}_50.pkl')
             state_dict = torch.load(model_path)
             model_dict = module.state_dict()
             new_state_dict = OrderedDict()

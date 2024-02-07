@@ -17,20 +17,21 @@ def fast_test_p_s(config, base, loaders, current_step, if_test_forget=True):
 
         distance_matrix = compute_distance_matrix(query_features, gallery_features, config.test_metric)
         distance_matrix = distance_matrix.data.cpu().numpy()
-        CMC, mAP = fast_evaluate_rank(distance_matrix,
+        CMC, mAP, CMC_cc, mAP_cc = fast_evaluate_rank(distance_matrix,
                                       query_pids_meter.get_val_numpy(),
                                       gallery_pids_meter.get_val_numpy(),
                                       query_cids_meter.get_val_numpy(),
                                       gallery_cids_meter.get_val_numpy(),
-                                      max_rank=50,
+                                      query_clothids_meter.get_val_numpy(),
+                                      gallery_clothids_meter.get_val_numpy(),
                                       use_metric_cuhk03=False,
-                                      use_cython=True)
+                                      use_cython=config.fast_test)
 
-        return CMC[0] * 100, mAP * 100
+        return CMC[0] * 100, mAP * 100, CMC_cc[0] * 100, mAP_cc * 100
     results_dict = {}
     for dataset_name, temp_loaders in loaders.test_loader_dict.items():
-        query_features_meter, query_pids_meter, query_cids_meter = CatMeter(), CatMeter(), CatMeter()
-        gallery_features_meter, gallery_pids_meter, gallery_cids_meter = CatMeter(), CatMeter(), CatMeter()
+        query_features_meter, query_pids_meter, query_cids_meter, query_clothids_meter = CatMeter(), CatMeter(), CatMeter(), CatMeter()
+        gallery_features_meter, gallery_pids_meter, gallery_cids_meter, gallery_clothids_meter = CatMeter(), CatMeter(), CatMeter(), CatMeter()
 
         torch.cuda.empty_cache()
         print(time_now(), f' {dataset_name} feature start ')
@@ -39,22 +40,28 @@ def fast_test_p_s(config, base, loaders, current_step, if_test_forget=True):
                 for data in loader:
                     # compute feautres
                     images, pids, cids = data[0:3]
+                    cloth_ids = data[-2]
                     images = images.to(base.device)
                     features, featuremaps = base.model_dict['tasknet'](images, current_step)
+                    # save as query features
                     if loader_id == 0:
                         query_features_meter.update(features.data)
                         query_pids_meter.update(pids)
                         query_cids_meter.update(cids)
+                        query_clothids_meter.update(cloth_ids)
                     # save as gallery features
                     elif loader_id == 1:
                         gallery_features_meter.update(features.data)
                         gallery_pids_meter.update(pids)
                         gallery_cids_meter.update(cids)
+                        gallery_clothids_meter.update(cloth_ids)
 
         print(time_now(), f' {dataset_name} feature done')
         torch.cuda.empty_cache()
-        rank1, map = _cmc_map(query_features_meter, gallery_features_meter)
-        results_dict[f'{dataset_name}_tasknet_mAP'], results_dict[f'{dataset_name}_tasknet_Rank1'] = map, rank1
+        rank1, map, rank1_cc, map_cc = _cmc_map(query_features_meter, gallery_features_meter)
+        results_dict[f'{dataset_name}_tasknet_mAP'], results_dict[f'{dataset_name}_tasknet_Rank1'], \
+        results_dict[f'{dataset_name}_tasknet_mAP_CC'], results_dict[f'{dataset_name}_tasknet_Rank1_CC'] \
+        = map, rank1, map_cc, rank1_cc
 
     results_str = ''
     for criterion, value in results_dict.items():

@@ -4,19 +4,36 @@ import os
 from pkd.data_loader.incremental_datasets import IncrementalReIDDataSet, \
     Incremental_combine_train_samples, Incremental_combine_test_samples, IncrementalPersonReIDSamples
 import copy
-from pkd.datasets import (IncrementalSamples4subcuhksysu, IncrementalSamples4market,
-                          IncrementalSamples4duke, IncrementalSamples4sensereid,
-                          IncrementalSamples4msmt17, IncrementalSamples4cuhk03,
-                          IncrementalSamples4cuhk01, IncrementalSamples4cuhk02,
-                          IncrementalSamples4viper, IncrementalSamples4ilids,
-                          IncrementalSamples4prid, IncrementalSamples4grid,
-                          IncrementalSamples4mix)
-from pkd.data_loader.loader import ClassUniformlySampler4Incremental, data, IterLoader, ClassUniformlySampler
+from lreid.datasets import (IncrementalSamples4subcuhksysu, IncrementalSamples4market,
+                               IncrementalSamples4duke, IncrementalSamples4sensereid,
+                               IncrementalSamples4msmt17, IncrementalSamples4cuhk03,
+                               IncrementalSamples4cuhk01, IncrementalSamples4cuhk02,
+                               IncrementalSamples4viper, IncrementalSamples4ilids,
+                               IncrementalSamples4prid, IncrementalSamples4grid,
+                               IncrementalSamples4mix, IncrementalSamples4Real28,
+                               IncrementalSamples4Celeb, IncrementalSamples4CelebLight,
+                               IncrementalSamples4Cocas, IncrementalSamples4DeepChange,
+                               IncrementalSamples4LTCC, IncrementalSamples4PRCC, 
+                               IncrementalSamples4VCClothes, IncrementalSamples4LaST)
+from lreid.data_loader.loader import ClassUniformlySampler4Incremental, data, IterLoader, ClassUniformlySampler
 import torch
 import torchvision.transforms as transforms
-from pkd.data_loader.transforms2 import RandomErasing
+from lreid.data_loader.transforms2 import RandomErasing
 from collections import defaultdict
 
+"""
+    CCRe-ID datasets summary
+    - Datasets with no clothing labels:
+        + Celeb
+        + Celeb Light
+        + DeepChange
+    - Dataset with weird types of clothing labels:
+        + VC-Clothes
+        + PRCC
+    - Dataset with no training set: 
+        + Real28
+    
+"""
 
 class IncrementalReIDLoaders:
 
@@ -44,15 +61,23 @@ class IncrementalReIDLoaders:
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
 
-        self.datasets = ['market', 'duke', 'cuhksysu', 'subcuhksysu', 'msmt17', 'cuhk03',
-                         'mix', 'sensereid',
-                         'cuhk01', 'cuhk02', 'viper', 'ilids', 'prid', 'grid', 'generalizable',
-                         'allgeneralizable', 'partgeneralizable', 'finalgeneralizable']
+        self.datasets = ['ltcc', 'prcc', 'last', 'vcclothes', 'real28', 
+                         'celeb', 'celeblight', 'deepchange', 'cocas',
+                         'generalizable', 'allgeneralizable', 'partgeneralizable', 'finalgeneralizable']
+
+        # self.datasets = ['market', 'duke', 'cuhksysu', 'subcuhksysu', 'msmt17', 'cuhk03',
+        #                  'mix', 'sensereid',
+        #                  'cuhk01', 'cuhk02', 'viper', 'ilids', 'prid', 'grid', 'generalizable',
+        #                  'allgeneralizable', 'partgeneralizable', 'finalgeneralizable']
 
         # dataset
 
         for a_train_dataset in self.config.train_dataset + self.config.test_dataset:
             assert a_train_dataset in self.datasets, a_train_dataset
+
+        # batch size
+
+        self.if_init_show_loader = self.config.output_featuremaps
 
         self.use_local_label4validation = self.config.use_local_label4validation
 
@@ -85,7 +110,7 @@ class IncrementalReIDLoaders:
         total_pid_list, total_cid_list = [], []
         temp_dict = copy.deepcopy(self.global_pids_per_step_dict)
         for step_index, pid_per_step in self.global_pids_per_step_dict.items():
-            if self.config.num_identities_per_domain is -1:
+            if self.config.num_identities_per_domain == -1:
                 one_step_pid_list = sorted(list(pid_per_step))
             else:
                 one_step_pid_list = sorted(list(pid_per_step))[0:self.config.num_identities_per_domain]
@@ -116,6 +141,9 @@ class IncrementalReIDLoaders:
 
 
         # self.train_iter = self._get_uniform_iter(train_samples, self.transform_train, self.p, self.k)
+        if self.if_init_show_loader:
+            self.train_vae_iter = self._get_uniform_iter(train_samples, self.transform_test, 4, 2)
+            
         '''init test dataset'''
         self.test_loader_dict = defaultdict(list)
         query_sample, gallery_sample = [], []
@@ -166,6 +194,22 @@ class IncrementalReIDLoaders:
                 samples = IncrementalSamples4prid(self.config.datasets_root, relabel=True, combineall=self.config.combine_all).train
             elif a_train_dataset == 'grid':
                 samples = IncrementalSamples4grid(self.config.datasets_root, relabel=True, combineall=self.config.combine_all).train
+            elif a_train_dataset == 'ltcc':
+                samples = IncrementalSamples4LTCC(self.config.datasets_root).train
+            elif a_train_dataset == 'prcc':
+                samples = IncrementalSamples4PRCC(self.config.datasets_root).train
+            elif a_train_dataset == 'last':
+                samples = IncrementalSamples4LaST(self.config.datasets_root).train
+            elif a_train_dataset == 'vcclothes':
+                samples = IncrementalSamples4VCClothes(self.config.datasets_root).train
+            elif a_train_dataset == 'celeb':
+                samples = IncrementalSamples4Celeb(self.config.datasets_root).train
+            elif a_train_dataset == 'celeblight':
+                samples = IncrementalSamples4CelebLight(self.config.datasets_root).train
+            elif a_train_dataset == 'deepchange':
+                samples = IncrementalSamples4DeepChange(self.config.datasets_root).train
+            elif a_train_dataset == 'cocas':
+                samples = IncrementalSamples4Cocas(self.config.datasets_root).train
             samples_list.append(samples)
 
         samples, global_pids_per_step_dict, global_cids_per_step_dict = Incremental_combine_train_samples(samples_list)
@@ -221,6 +265,33 @@ class IncrementalReIDLoaders:
             query, gallery = samples.query, samples.gallery
         elif a_test_dataset == 'grid':
             samples = IncrementalSamples4grid(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
+            query, gallery = samples.query, samples.gallery
+        elif a_test_dataset == 'ltcc':
+            samples = IncrementalSamples4LTCC(self.config.datasets_root)
+            query, gallery = samples.query, samples.gallery
+        elif a_test_dataset == 'prcc':
+            samples = IncrementalSamples4PRCC(self.config.datasets_root)
+            query, gallery = samples.query, samples.gallery
+        elif a_test_dataset == 'last':
+            samples = IncrementalSamples4LaST(self.config.datasets_root)
+            query, gallery = samples.query, samples.gallery
+        elif a_test_dataset == 'vcclothes':
+            samples = IncrementalSamples4VCClothes(self.config.datasets_root)
+            query, gallery = samples.query, samples.gallery
+        elif a_test_dataset == 'real28':
+            samples = IncrementalSamples4Real28(self.config.datasets_root)
+            query, gallery = samples.query, samples.gallery
+        elif a_test_dataset == 'celeb':
+            samples = IncrementalSamples4Celeb(self.config.datasets_root)
+            query, gallery = samples.query, samples.gallery
+        elif a_test_dataset == 'celeblight':
+            samples = IncrementalSamples4CelebLight(self.config.datasets_root)
+            query, gallery = samples.query, samples.gallery
+        elif a_test_dataset == 'deepchange':
+            samples = IncrementalSamples4DeepChange(self.config.datasets_root)
+            query, gallery = samples.query, samples.gallery
+        elif a_test_dataset == 'cocas':
+            samples = IncrementalSamples4Cocas(self.config.datasets_root)
             query, gallery = samples.query, samples.gallery
         elif a_test_dataset == 'generalizable':
 
@@ -290,14 +361,14 @@ class IncrementalReIDLoaders:
                               samples4sensereid, samples4cuhk01, samples4cuhk02, samples4cuhk03])
         elif a_test_dataset == 'partgeneralizable':
 
-            # samples4sensereid = IncrementalSamples4sensereid(self.config.datasets_root, relabel=True,
-            #                                        combineall=self.config.combine_all)
+            samples4sensereid = IncrementalSamples4sensereid(self.config.datasets_root, relabel=True,
+                                                   combineall=self.config.combine_all)
 
-            samples4cuhk01 = IncrementalSamples4cuhk01(self.config.datasets_root, relabel=True,
-                                                combineall=self.config.combine_all)
-
-            samples4cuhk02 = IncrementalSamples4cuhk02(self.config.datasets_root, relabel=True,
-                                                       combineall=self.config.combine_all)
+            # samples4cuhk01 = IncrementalSamples4cuhk01(self.config.datasets_root, relabel=True,
+            #                                     combineall=self.config.combine_all)
+            #
+            # samples4cuhk02 = IncrementalSamples4cuhk02(self.config.datasets_root, relabel=True,
+            #                                            combineall=self.config.combine_all)
 
             samples4viper = IncrementalSamples4viper(self.config.datasets_root, relabel=True,
                                                      combineall=self.config.combine_all)
@@ -312,7 +383,7 @@ class IncrementalReIDLoaders:
                                                    combineall=self.config.combine_all)
             query, gallery = Incremental_combine_test_samples(
                 samples_list=[samples4viper, samples4ilids, samples4prid, samples4grid,
-                              samples4cuhk01, samples4cuhk02])
+                              samples4sensereid])
 
         return query, gallery
 

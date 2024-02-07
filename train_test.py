@@ -122,7 +122,10 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--fp_16', type=bool, default=True)
     parser.add_argument('--running_time', type=str, default=running_time)
-    parser.add_argument('--visdom', type=bool, default=True)
+    """
+        can modify
+    """
+    parser.add_argument('--visdom', type=bool, default=False)
     parser.add_argument('--visdom_port', type=int, default=8097)
     parser.add_argument('--cuda', type=str, default='cuda')
     parser.add_argument('--mode', type=str, default='train', help='trian_10, train_5, train, test or visualize')
@@ -139,15 +142,28 @@ if __name__ == '__main__':
                         help='0-10 epoch warmup')
 
     # dataset configuration
-    machine_dataset_path = '/home/r2d2/r2d2/Datasets/'
-    parser.add_argument('--datasets_root', type=str, default=machine_dataset_path, help='mix/market/duke/')
+    """
+        can modify
+    """
+    machine_dataset_path = '/media/dustin/DATA/Research/2DReID/Datasets/'
+    parser.add_argument('--datasets_root', type=str, default=machine_dataset_path, help='path to CCRe-ID datasets')
     parser.add_argument('--combine_all', type=ast.literal_eval, default=False, help='train+query+gallery as train')
+    """
+        can modify
+    """
     parser.add_argument('--train_dataset', nargs='+', type=str,
-                        default=['market', 'subcuhksysu', 'duke', 'msmt17', 'cuhk03'])
+                        default=['ltcc', 'prcc', 'celeb'])
     parser.add_argument('--test_dataset', nargs='+', type=str,
-                        default=['market', 'subcuhksysu', 'duke', 'cuhk03', 'allgeneralizable'])
+                        default=['last'])
+    # parser.add_argument('--train_dataset', nargs='+', type=str,
+    #                     default=['market', 'subcuhksysu', 'duke', 'msmt17', 'cuhk03'])
+    # parser.add_argument('--test_dataset', nargs='+', type=str,
+    #                     default=['market', 'subcuhksysu', 'duke', 'cuhk03', 'allgeneralizable'])
 
     parser.add_argument('--image_size', type=int, nargs='+', default=[256, 128])
+    """
+        can modify
+    """
     parser.add_argument('--test_batch_size', type=int, default=64, help='test batch size')
     parser.add_argument('--p', type=int, default=32, help='person count in a batch')
     parser.add_argument('--k', type=int, default=4, help='images count of a person in a batch')
@@ -177,6 +193,9 @@ if __name__ == '__main__':
                         help='new_gamma for the new module learning rate decay')
 
     parser.add_argument('--weight_decay', type=float, default=0.0005)
+    """
+        can modify
+    """
     parser.add_argument('--total_train_epochs', type=int, default=50)
     parser.add_argument('--total_continual_train_epochs', type=int, default=50)
 
@@ -187,16 +206,25 @@ if __name__ == '__main__':
                         help='directory to resume training. "" stands for output_path')
 
     # test
+    """
+        can modify
+    """
     parser.add_argument('--fast_test', type=bool,
-                        default=True,
+                        default=False,
                         help='test during train using Cython')
+    """
+        can modify
+    """
     parser.add_argument('--test_frequency', type=int,
-                        default=25,
+                        default=-1,
                         help='test during train, i <= 0 means do not test during train')
     parser.add_argument('--if_test_forget', type=bool,
                         default=True,
                         help='test during train for forgeting')
 
+    """
+        can modify
+    """
     parser.add_argument('--resume_test_model', type=str, default='/path/to/pretrained/model',
                         help='only available under test model')
     parser.add_argument('--test_mode', type=str, default='all', help='inter-camera, intra-camera, all')
@@ -212,8 +240,13 @@ if __name__ == '__main__':
     parser.add_argument('--visualize_mode_onlyshow', type=str, default='pos', help='pos, neg, none')
     parser.add_argument('--visualize_output_path', type=str, default='results/visualization/',
                         help='path to save visualization results, only available under visualize model')
-    parser.add_argument('--output_featuremaps', type=bool, default=True,
+    
+    """
+        can modify
+    """
+    parser.add_argument('--output_featuremaps', type=bool, default=False,
                         help='During training visualize featuremaps')
+    
     parser.add_argument('--output_featuremaps_frequency', type=int, default=10,
                         help='Frequency of visualize featuremaps')
     parser.add_argument('--save_heatmaps', type=bool, default=False,
