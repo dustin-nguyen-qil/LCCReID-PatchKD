@@ -148,14 +148,28 @@ class IncrementalReIDLoaders:
         self.test_loader_dict = defaultdict(list)
         query_sample, gallery_sample = [], []
         for one_test_dataset in self.config.test_dataset:
-            temp_query_samples, temp_gallery_samples = self._get_test_samples(one_test_dataset)
-            query_sample += temp_query_samples
-            gallery_sample += temp_gallery_samples
-            temp_query_loader = self._get_loader(temp_query_samples, self.transform_test, self.config.test_batch_size)
-            temp_gallery_loader = self._get_loader(temp_gallery_samples, self.transform_test,
-                                                   self.config.test_batch_size)
-            self.test_loader_dict[one_test_dataset].append(temp_query_loader)
-            self.test_loader_dict[one_test_dataset].append(temp_gallery_loader)
+            if one_test_dataset == 'prcc':
+                temp_query_same_samples, temp_query_diff_samples, temp_gallery_samples = self._get_test_samples(one_test_dataset)
+                query_sample += temp_query_same_samples
+                query_sample += temp_query_diff_samples
+                gallery_sample += temp_gallery_samples
+                temp_query_same_loader = self._get_loader(temp_query_same_samples, self.transform_test, self.config.test_batch_size)
+                temp_query_diff_loader = self._get_loader(temp_query_diff_samples, self.transform_test, self.config.test_batch_size)
+                temp_gallery_loader = self._get_loader(temp_gallery_samples, self.transform_test,
+                                                    self.config.test_batch_size)
+                self.test_loader_dict[one_test_dataset].append(temp_query_same_loader)
+                self.test_loader_dict[one_test_dataset].append(temp_query_diff_loader)
+                self.test_loader_dict[one_test_dataset].append(temp_gallery_loader)
+
+            else:
+                temp_query_samples, temp_gallery_samples = self._get_test_samples(one_test_dataset)
+                query_sample += temp_query_samples
+                gallery_sample += temp_gallery_samples
+                temp_query_loader = self._get_loader(temp_query_samples, self.transform_test, self.config.test_batch_size)
+                temp_gallery_loader = self._get_loader(temp_gallery_samples, self.transform_test,
+                                                    self.config.test_batch_size)
+                self.test_loader_dict[one_test_dataset].append(temp_query_loader)
+                self.test_loader_dict[one_test_dataset].append(temp_gallery_loader)
 
 
         IncrementalPersonReIDSamples._show_info(None, train_samples, query_sample, gallery_sample,
@@ -224,75 +238,98 @@ class IncrementalReIDLoaders:
         if a_test_dataset == 'market':
             samples = IncrementalSamples4market(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'duke':
             samples = IncrementalSamples4duke(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'cuhksysu':
             samples = IncrementalSamples4subcuhksysu(self.config.datasets_root, relabel=True, combineall=self.config.combine_all,
                                                      use_subset_train=False)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'subcuhksysu':
             samples = IncrementalSamples4subcuhksysu(self.config.datasets_root, relabel=True, combineall=self.config.combine_all,
                                                      use_subset_train=True)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'mix':
             samples = IncrementalSamples4mix(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'sensereid':
             samples = IncrementalSamples4sensereid(self.config.datasets_root, relabel=True,
                                                    combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'msmt17':
             samples = IncrementalSamples4msmt17(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'cuhk03':
             samples = IncrementalSamples4cuhk03(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'cuhk01':
             samples = IncrementalSamples4cuhk01(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'cuhk02':
             samples = IncrementalSamples4cuhk02(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'viper':
             samples = IncrementalSamples4viper(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'ilids':
             samples = IncrementalSamples4ilids(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'prid':
             samples = IncrementalSamples4prid(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'grid':
             samples = IncrementalSamples4grid(self.config.datasets_root, relabel=True, combineall=self.config.combine_all)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'ltcc':
             samples = IncrementalSamples4LTCC(self.config.datasets_root)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'prcc':
             samples = IncrementalSamples4PRCC(self.config.datasets_root)
-            query, gallery = samples.query, samples.gallery
+            query_same, query_diff, gallery = samples.query_same, samples.query_diff, samples.gallery
+            return query_same, query_diff, gallery
         elif a_test_dataset == 'last':
             samples = IncrementalSamples4LaST(self.config.datasets_root)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'vcclothes':
             samples = IncrementalSamples4VCClothes(self.config.datasets_root)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'real28':
             samples = IncrementalSamples4Real28(self.config.datasets_root)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'celeb':
             samples = IncrementalSamples4Celeb(self.config.datasets_root)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'celeblight':
             samples = IncrementalSamples4CelebLight(self.config.datasets_root)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'deepchange':
             samples = IncrementalSamples4DeepChange(self.config.datasets_root)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'cocas':
             samples = IncrementalSamples4Cocas(self.config.datasets_root)
             query, gallery = samples.query, samples.gallery
+            return query, gallery
         elif a_test_dataset == 'generalizable':
 
             samples4viper = IncrementalSamples4viper(self.config.datasets_root, relabel=True,
@@ -307,6 +344,7 @@ class IncrementalReIDLoaders:
             samples4grid = IncrementalSamples4grid(self.config.datasets_root, relabel=True,
                                               combineall=self.config.combine_all)
             query, gallery = Incremental_combine_test_samples(samples_list=[samples4viper,samples4ilids,samples4prid,samples4grid])
+            return query, gallery
         elif a_test_dataset == 'allgeneralizable':
 
             samples4sensereid = IncrementalSamples4sensereid(self.config.datasets_root, relabel=True,
@@ -332,6 +370,7 @@ class IncrementalReIDLoaders:
             query, gallery = Incremental_combine_test_samples(
                 samples_list=[samples4viper, samples4ilids, samples4prid, samples4grid,
                               samples4sensereid, samples4cuhk01, samples4cuhk02])
+            return query, gallery
         elif a_test_dataset == 'finalgeneralizable':
             samples4cuhk03 = IncrementalSamples4cuhk03(self.config.datasets_root, relabel=True,
                                                 combineall=self.config.combine_all)
@@ -359,6 +398,7 @@ class IncrementalReIDLoaders:
             query, gallery = Incremental_combine_test_samples(
                 samples_list=[samples4viper, samples4ilids, samples4prid, samples4grid,
                               samples4sensereid, samples4cuhk01, samples4cuhk02, samples4cuhk03])
+            return query, gallery
         elif a_test_dataset == 'partgeneralizable':
 
             samples4sensereid = IncrementalSamples4sensereid(self.config.datasets_root, relabel=True,
@@ -385,7 +425,7 @@ class IncrementalReIDLoaders:
                 samples_list=[samples4viper, samples4ilids, samples4prid, samples4grid,
                               samples4sensereid])
 
-        return query, gallery
+            return query, gallery
 
 
     def _get_uniform_incremental_iter(self, samples, transform, p, k, pid_list):

@@ -279,6 +279,19 @@ def evaluate_with_clothes(distmat, q_pids, g_pids, q_camids, g_camids, q_clothid
 
 
 def evaluate_py(
+    distmat, q_pids, g_pids, q_camids, g_camids, use_metric_cuhk03
+):
+    if use_metric_cuhk03:
+        return eval_cuhk03(
+            distmat, q_pids, g_pids, q_camids, g_camids, max_rank=50
+        )
+    else:
+        CMC, mAP =  evaluate(
+            distmat, q_pids, g_pids, q_camids, g_camids
+        )
+        return CMC, mAP
+    
+def evaluate_py_cc(
     distmat, q_pids, g_pids, q_camids, g_camids, q_clothids, g_clothids, use_metric_cuhk03
 ):
     if use_metric_cuhk03:
@@ -293,9 +306,64 @@ def evaluate_py(
             distmat, q_pids, g_pids, q_camids, g_camids, q_clothids, g_clothids
         )
         return CMC, mAP, CMC_cc, mAP_cc
+    
+def evaluate_py_prcc(
+    distmat_same, distmat_diff, qs_pids, qd_pids, g_pids, qs_camids, qd_camids, g_camids, use_metric_cuhk03
+):
+    if use_metric_cuhk03:
+        return eval_cuhk03(
+            distmat_diff, qd_pids, g_pids, qd_camids, g_camids, max_rank=50
+        )
+    else:
+        CMC, mAP =  evaluate(
+            distmat_same, qs_pids, g_pids, qs_camids, g_camids
+        )
+        CMC_cc, mAP_cc = evaluate(
+            distmat_diff, qd_pids, g_pids, qd_camids, g_camids
+        )
+        return CMC, mAP, CMC_cc, mAP_cc
 
 
 def fast_evaluate_rank(
+    distmat,
+    q_pids,
+    g_pids,
+    q_camids,
+    g_camids,
+    use_metric_cuhk03=False,
+    use_cython=True
+):
+    """Evaluates CMC rank.
+
+    Args:
+        distmat (numpy.ndarray): distance matrix of shape (num_query, num_gallery).
+        q_pids (numpy.ndarray): 1-D array containing person identities
+            of each query instance.
+        g_pids (numpy.ndarray): 1-D array containing person identities
+            of each gallery instance.
+        q_camids (numpy.ndarray): 1-D array containing camera views under
+            which each query instance is captured.
+        g_camids (numpy.ndarray): 1-D array containing camera views under
+            which each gallery instance is captured.
+        max_rank (int, optional): maximum CMC rank to be computed. Default is 50.
+        use_metric_cuhk03 (bool, optional): use single-gallery-shot setting for cuhk03.
+            Default is False. This should be enabled when using cuhk03 classic split.
+        use_cython (bool, optional): use cython code for evaluation. Default is True.
+            This is highly recommended as the cython code can speed up the cmc computation
+            by more than 10x. This requires Cython to be installed.
+    """
+    if use_cython and IS_CYTHON_AVAI:
+        return evaluate_cy(
+            distmat, q_pids, g_pids, q_camids, g_camids,
+            use_metric_cuhk03
+        )
+    else:
+        return evaluate_py(
+            distmat, q_pids, g_pids, q_camids, g_camids,
+            use_metric_cuhk03
+        )
+    
+def fast_evaluate_rank_cc(
     distmat,
     q_pids,
     g_pids,
@@ -331,7 +399,48 @@ def fast_evaluate_rank(
             use_metric_cuhk03
         )
     else:
-        return evaluate_py(
+        return evaluate_py_cc(
             distmat, q_pids, g_pids, q_camids, g_camids, q_clothids, g_clothids,
             use_metric_cuhk03
+        )
+    
+def fast_evaluate_rank_prcc(
+    distmat_same,
+    distmat_diff,
+    qs_pids,
+    qd_pids,
+    g_pids,
+    qs_camids,
+    qd_camids,
+    g_camids,
+    use_metric_cuhk03=False,
+    use_cython=True
+):
+    """Evaluates CMC rank.
+
+    Args:
+        distmat (numpy.ndarray): distance matrix of shape (num_query, num_gallery).
+        q_pids (numpy.ndarray): 1-D array containing person identities
+            of each query instance.
+        g_pids (numpy.ndarray): 1-D array containing person identities
+            of each gallery instance.
+        q_camids (numpy.ndarray): 1-D array containing camera views under
+            which each query instance is captured.
+        g_camids (numpy.ndarray): 1-D array containing camera views under
+            which each gallery instance is captured.
+        max_rank (int, optional): maximum CMC rank to be computed. Default is 50.
+        use_metric_cuhk03 (bool, optional): use single-gallery-shot setting for cuhk03.
+            Default is False. This should be enabled when using cuhk03 classic split.
+        use_cython (bool, optional): use cython code for evaluation. Default is True.
+            This is highly recommended as the cython code can speed up the cmc computation
+            by more than 10x. This requires Cython to be installed.
+    """
+    if use_cython and IS_CYTHON_AVAI:
+        return evaluate_cy(
+            distmat_same, qd_pids, g_pids, qd_camids, g_camids,
+            use_metric_cuhk03
+        )
+    else:
+        return evaluate_py_prcc(
+            distmat_same, distmat_diff, qs_pids, qd_pids, g_pids, qs_camids, qd_camids, g_camids, use_metric_cuhk03
         )
