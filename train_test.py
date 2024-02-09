@@ -125,14 +125,14 @@ if __name__ == '__main__':
     """
         can modify
     """
-    parser.add_argument('--visdom', type=bool, default=False)
+    parser.add_argument('--visdom', type=bool, default=True)
     parser.add_argument('--visdom_port', type=int, default=8097)
     parser.add_argument('--cuda', type=str, default='cuda')
-    parser.add_argument('--mode', type=str, default='train', help='trian_10, train_5, train, test or visualize')
+    parser.add_argument('--mode', type=str, default='train', help='train_10, train_5, train, test or visualize')
     parser.add_argument('--output_path', type=str, default=f'results/{running_time}', help='path to save related informations')
     parser.add_argument('--continual_step', type=str, default='5',
                         help='10 or 5 or task')
-    parser.add_argument('--num_identities_per_domain', type=int, default=500,
+    parser.add_argument('--num_identities_per_domain', type=int, default=-1,
                         help='250 for 10 steps, 500 for 5 steps, -1 for all aviliable identities')
     parser.add_argument('--joint_train', type=bool, default=False,
                         help='joint all dataset')
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_dataset', nargs='+', type=str,
                         default=['ltcc', 'prcc', 'celeb'])
     parser.add_argument('--test_dataset', nargs='+', type=str,
-                        default=['last'])
+                        default=['real28', 'last', 'vcclothes'])
     # parser.add_argument('--train_dataset', nargs='+', type=str,
     #                     default=['market', 'subcuhksysu', 'duke', 'msmt17', 'cuhk03'])
     # parser.add_argument('--test_dataset', nargs='+', type=str,
