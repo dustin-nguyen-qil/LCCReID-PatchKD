@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 import os
 import copy
-from lreid.data_loader.incremental_datasets import IncrementalPersonReIDSamples
+from pkd.data_loader.incremental_datasets import IncrementalPersonReIDSamples
 import re
 import glob
 import os.path as osp

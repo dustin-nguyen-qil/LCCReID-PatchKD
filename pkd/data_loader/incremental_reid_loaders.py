@@ -4,7 +4,7 @@ import os
 from pkd.data_loader.incremental_datasets import IncrementalReIDDataSet, \
     Incremental_combine_train_samples, Incremental_combine_test_samples, IncrementalPersonReIDSamples
 import copy
-from lreid.datasets import (IncrementalSamples4subcuhksysu, IncrementalSamples4market,
+from pkd.datasets import (IncrementalSamples4subcuhksysu, IncrementalSamples4market,
                                IncrementalSamples4duke, IncrementalSamples4sensereid,
                                IncrementalSamples4msmt17, IncrementalSamples4cuhk03,
                                IncrementalSamples4cuhk01, IncrementalSamples4cuhk02,
@@ -15,10 +15,10 @@ from lreid.datasets import (IncrementalSamples4subcuhksysu, IncrementalSamples4m
                                IncrementalSamples4Cocas, IncrementalSamples4DeepChange,
                                IncrementalSamples4LTCC, IncrementalSamples4PRCC, 
                                IncrementalSamples4VCClothes, IncrementalSamples4LaST)
-from lreid.data_loader.loader import ClassUniformlySampler4Incremental, data, IterLoader, ClassUniformlySampler
+from pkd.data_loader.loader import ClassUniformlySampler4Incremental, data, IterLoader, ClassUniformlySampler
 import torch
 import torchvision.transforms as transforms
-from lreid.data_loader.transforms2 import RandomErasing
+from pkd.data_loader.transforms2 import RandomErasing
 from collections import defaultdict
 
 """
